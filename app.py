@@ -1,5 +1,6 @@
 import streamlit as st
 from models import Message
+from chatbot import ask_ai
 
 
 if "messages" not in st.session_state:
@@ -43,7 +44,8 @@ if prompt := st.chat_input("Ask me anything"):
     st.sidebar.header(prompt, divider="orange")
 
     # generate assistant response and add to chat history
-    assistant_msg = Message(role="assistant", content="Echo: ")
+    ai_response = ask_ai(prompt)
+    assistant_msg = Message(role="assistant", content=ai_response)
     st.session_state.messages.append(assistant_msg)
     with st.chat_message(assistant_msg.role):
         st.markdown(assistant_msg.content)
