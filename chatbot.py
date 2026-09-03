@@ -35,4 +35,7 @@ food_chain = food_recommendation_prompt | model | string_parser
 spot_chain = spot_recommendation_prompt | model | string_parser
 budget_chain = budget_recommendation_prompt | model | string_parser
 
+# general fallback chain for unclassified queries
+general_prompt  =  PromptTemplate(template="You are a helpful assistant. Answer the following question: {query}", input_variables=["query"])
+general_chain = general_prompt | model | string_parser
 
