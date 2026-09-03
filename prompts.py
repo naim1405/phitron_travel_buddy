@@ -92,10 +92,15 @@ If the query is ambiguous but can reasonably be answered, make a sensible assump
 
 Always prioritize the user's actual query over generic instructions.
 
+The user's message history:
+
+{history}
+
 User query:
 {query}
 
 """
+
 food_recommendation_prompt_template  = """
 You are the Food Specialist for "Travel Buddy".
 
@@ -132,6 +137,10 @@ Never invent restaurant names, prices, addresses, opening hours, ratings, or ava
 If the query is ambiguous but can reasonably be answered, make a sensible assumption and state it briefly.
 
 Always prioritize the user's actual query over generic food-related information.
+
+The user's message history:
+
+{history}
 
 User query:
 {query}
@@ -176,6 +185,10 @@ Never invent exact current prices. Clearly indicate when prices are approximate 
 
 Always prioritize the user's actual query over generic budgeting information.
 
+The user's message history:
+
+{history}
+
 User query:
 {query}
 """
@@ -214,6 +227,10 @@ If one specialist response is not relevant to the user's query, do not force tha
 If the specialist responses contain insufficient information to answer something confidently, be transparent about the limitation.
 
 The final response should feel like it was written by one knowledgeable travel assistant who considered all three areas together.
+
+The user's message history:
+
+{history}
 
 Original user query:
 {query}
@@ -282,6 +299,10 @@ For travel questions, answer naturally and use the information available to you.
 For unrelated questions, do not attempt to solve or explain the unrelated problem.
 Keep unrelated-topic responses brief.
 Always prioritize the user's actual query.
+
+The user's message history:
+
+{history}
 
 User query:
 {query}

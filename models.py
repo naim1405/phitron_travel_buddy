@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
+from dataclasses import dataclass
+from langchain.messages import HumanMessage, AIMessage
 
 
 class Message(BaseModel):
@@ -16,4 +18,12 @@ class QueryType(str, Enum):
         
 class Query(BaseModel):
     query: str
+    type: QueryType
+    history: list[HumanMessage | AIMessage] = []
+
+
+@dataclass
+class UserInput:
+    query: str
+    history: list[HumanMessage | AIMessage]
     type: QueryType
