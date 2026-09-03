@@ -2,14 +2,14 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
-from models import Query
+from langchain_core.runnables import RunnableBranch, RunnableLambda
+from models import Query, QueryType
 from prompts import task_classifier_prompt, spot_recommendation_prompt, food_recommendation_prompt, budget_recommendation_prompt, all_recommendation_prompt
 
 load_dotenv()
 
 model = ChatGoogleGenerativeAI(
-    model="gemini-3.7-flash",
-    temperature=1.0,
+    model="gemini-3.5-flash-lite",
 )
 
 parser = PydanticOutputParser(pydantic_object=Query)
