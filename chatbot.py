@@ -69,10 +69,14 @@ conditional_chain = RunnableBranch(
 
 
 
-final_chain = classifier_chain | conditional_chain
+chatbot = classifier_chain | conditional_chain
 
-result = final_chain.invoke({
-    "query": "I'm going to Cox's Bazar for 3 days. What should I do, eat, and how much will it cost?"
-})
+def ask_ai(query: str) -> str:
+    return chatbot.invoke({"query": query})
 
-print(result)
+if __name__ == "__main__":
+    result = chatbot.invoke({
+        "query": "I'm going to Cox's Bazar for 3 days. What should I do, eat, and how much will it cost?"
+    })
+
+    print(result)
