@@ -39,3 +39,18 @@ budget_chain = budget_recommendation_prompt | model | string_parser
 general_prompt  =  PromptTemplate(template="You are a helpful assistant. Answer the following question: {query}", input_variables=["query"])
 general_chain = general_prompt | model | string_parser
 
+conditional_chain = RunnableBranch(
+    (
+        lambda query : query.type == QueryType.ALL, RunnableLambda(lambda q : all_chain.invoke(q.query))
+    ),
+    (
+        lambda query : query.type == QueryType.FOOD, RunnableLambda(lambda q : food_chain.invoke(q.query))
+    ),
+    (
+        lambda query : query.type == QueryType.SPOTS, RunnableLambda(lambda q : spot_chain.invoke(q.query))
+    ),
+    (
+        lambda query : query.type == QueryType.BUDGET, RunnableLambda(lambda q : budget_chain.invoke(q.query))
+    ),
+    general_chain
+)
