@@ -4,7 +4,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
 from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnableParallel
 from models import Query, QueryType
-from prompts import task_classifier_prompt_template , spot_recommendation_prompt_template , food_recommendation_prompt_template , budget_recommendation_prompt_template , all_recommendation_prompt_template 
+from prompts import task_classifier_prompt_template , spot_recommendation_prompt_template , food_recommendation_prompt_template , budget_recommendation_prompt_template , all_recommendation_prompt_template, general_prompt_template
 
 load_dotenv()
 
@@ -48,7 +48,7 @@ all_merge_chain = all_recommendation_prompt | model | string_parser
 all_chain = all_tasks_parallel_chain | all_merge_chain
 
 # general fallback chain for unclassified queries
-general_prompt  =  PromptTemplate(template="You are a helpful assistant. Answer the following question: {query}", input_variables=["query"])
+general_prompt  =  PromptTemplate(template=general_prompt_template , input_variables=["query"])
 general_chain = general_prompt | model | string_parser
 
 conditional_chain = RunnableBranch(

@@ -11,6 +11,7 @@ class QueryType(str, Enum):
     SPOTS = "spots"
     FOOD = "food"
     BUDGET = "budget"
+    GENERAL = "general"
     
         
 class Query(BaseModel):
