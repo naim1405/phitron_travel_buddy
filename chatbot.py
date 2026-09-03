@@ -26,13 +26,26 @@ string_parser = StrOutputParser()
 food_recommendation_prompt = PromptTemplate(template=food_recommendation_prompt_template , input_variables=["query"])
 spot_recommendation_prompt = PromptTemplate(template=spot_recommendation_prompt_template , input_variables=["query"])
 budget_recommendation_prompt = PromptTemplate(template=budget_recommendation_prompt_template , input_variables=["query"])
-budget_recommendation_prompt = PromptTemplate(template=budget_recommendation_prompt, input_variables=["query"])
+all_recommendation_prompt  = PromptTemplate(template=all_recommendation_prompt_template , input_variables=["spots", "food", "budget"])
 
 
 # chains for different tasks
 food_chain = food_recommendation_prompt | model | string_parser
 spot_chain = spot_recommendation_prompt | model | string_parser
 budget_chain = budget_recommendation_prompt | model | string_parser
+
+
+all_tasks_parallel_chain = RunnableParallel({
+    "query": RunnableLambda( lambda query: query),
+    "spots": spot_chain,
+    "food": food_chain,
+    "budget": budget_chain
+
+})
+
+
+all_merge_chain = all_recommendation_prompt | model | string_parser
+all_chain = all_tasks_parallel_chain | all_merge_chain
 
 # general fallback chain for unclassified queries
 general_prompt  =  PromptTemplate(template="You are a helpful assistant. Answer the following question: {query}", input_variables=["query"])
@@ -53,3 +66,13 @@ conditional_chain = RunnableBranch(
     ),
     general_chain
 )
+
+
+
+final_chain = classifier_chain | conditional_chain
+
+result = final_chain.invoke({
+    "query": "I'm going to Cox's Bazar for 3 days. What should I do, eat, and how much will it cost?"
+})
+
+print(result)
