@@ -1,10 +1,6 @@
 import streamlit as st
-from pydantic import BaseModel
+from models import Message
 
-
-class Message(BaseModel):
-    role: str
-    content: str
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
