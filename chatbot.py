@@ -2,9 +2,9 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
-from langchain_core.runnables import RunnableBranch, RunnableLambda
+from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnableParallel
 from models import Query, QueryType
-from prompts import task_classifier_prompt, spot_recommendation_prompt, food_recommendation_prompt, budget_recommendation_prompt, all_recommendation_prompt
+from prompts import task_classifier_prompt_template , spot_recommendation_prompt_template , food_recommendation_prompt_template , budget_recommendation_prompt_template , all_recommendation_prompt_template 
 
 load_dotenv()
 
