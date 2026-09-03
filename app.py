@@ -7,9 +7,6 @@ from langchain.messages import HumanMessage, AIMessage
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
 
 # Header
 st.markdown("""
@@ -25,9 +22,11 @@ st.header("Travel Buddy! :airplane: :earth_americas: :world_map:")
 
 
 # chat history sidebar
-for item in st.session_state.chat_history:
-    with st.sidebar:
-        st.header(item, divider="orange")
+with st.sidebar:
+    st.header("Chat history", divider="orange")
+    for item in st.session_state.messages:
+        if isinstance(item, HumanMessage):
+            st.header(item.content, divider="orange")
 
 # conversation 
 for item in st.session_state.messages:
@@ -38,7 +37,6 @@ for item in st.session_state.messages:
 
 if prompt := st.chat_input("Ask me anything"):
     # display user msg and add to chat history
-    st.session_state.chat_history.append(HumanMessage(content=prompt).content)
     with st.chat_message("user"):
         st.markdown(prompt)
     st.sidebar.header(prompt, divider="orange")
