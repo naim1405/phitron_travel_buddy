@@ -3,8 +3,10 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
 from langchain_core.runnables import RunnableBranch, RunnableLambda, RunnableParallel
-from models import Query, QueryType
+from models import Query, QueryType, UserInput
 from prompts import task_classifier_prompt_template , spot_recommendation_prompt_template , food_recommendation_prompt_template , budget_recommendation_prompt_template , all_recommendation_prompt_template, general_prompt_template
+from langchain.messages import HumanMessage, AIMessage
+
 
 load_dotenv()
 
@@ -23,10 +25,10 @@ classifier_chain = prompt | model | parser
 string_parser = StrOutputParser()
 
 # prompt templates for different tasks
-food_recommendation_prompt = PromptTemplate(template=food_recommendation_prompt_template , input_variables=["query"])
-spot_recommendation_prompt = PromptTemplate(template=spot_recommendation_prompt_template , input_variables=["query"])
-budget_recommendation_prompt = PromptTemplate(template=budget_recommendation_prompt_template , input_variables=["query"])
-all_recommendation_prompt  = PromptTemplate(template=all_recommendation_prompt_template , input_variables=["spots", "food", "budget"])
+food_recommendation_prompt = PromptTemplate(template=food_recommendation_prompt_template , input_variables=["query", "history"])
+spot_recommendation_prompt = PromptTemplate(template=spot_recommendation_prompt_template , input_variables=["query", "history"])
+budget_recommendation_prompt = PromptTemplate(template=budget_recommendation_prompt_template , input_variables=["query", "history"])
+all_recommendation_prompt  = PromptTemplate(template=all_recommendation_prompt_template , input_variables=["spots", "food", "budget", "history"])
 
 
 # chains for different tasks
@@ -36,10 +38,12 @@ budget_chain = budget_recommendation_prompt | model | string_parser
 
 
 all_tasks_parallel_chain = RunnableParallel({
-    "query": RunnableLambda( lambda query: query),
-    "spots": spot_chain,
-    "food": food_chain,
-    "budget": budget_chain
+    "query": RunnableLambda( lambda query: query.query),
+    "history": RunnableLambda(lambda query: query.history),
+    "spots": RunnableLambda(lambda q : spot_chain.invoke({"query":q.query, "history":q.history})),
+    "food": RunnableLambda(lambda q : food_chain.invoke({"query":q.query, "history":q.history})),
+    "budget":RunnableLambda(lambda q : budget_chain.invoke({"query":q.query, "history":q.history})) 
+
 
 })
 
@@ -48,35 +52,37 @@ all_merge_chain = all_recommendation_prompt | model | string_parser
 all_chain = all_tasks_parallel_chain | all_merge_chain
 
 # general fallback chain for unclassified queries
-general_prompt  =  PromptTemplate(template=general_prompt_template , input_variables=["query"])
+general_prompt  =  PromptTemplate(template=general_prompt_template , input_variables=["query", "history"])
 general_chain = general_prompt | model | string_parser
 
 conditional_chain = RunnableBranch(
     (
-        lambda query : query.type == QueryType.ALL, RunnableLambda(lambda q : all_chain.invoke(q.query))
+        lambda user_input: user_input.type == QueryType.ALL,  all_chain
     ),
     (
-        lambda query : query.type == QueryType.FOOD, RunnableLambda(lambda q : food_chain.invoke(q.query))
+        lambda user_input: user_input.type == QueryType.FOOD, RunnableLambda(lambda q : food_chain.invoke({"query":q.query, "history":q.history}))
     ),
     (
-        lambda query : query.type == QueryType.SPOTS, RunnableLambda(lambda q : spot_chain.invoke(q.query))
+        lambda user_input : user_input.type == QueryType.SPOTS, RunnableLambda(lambda q : spot_chain.invoke({"query":q.query, "history":q.history}))
     ),
     (
-        lambda query : query.type == QueryType.BUDGET, RunnableLambda(lambda q : budget_chain.invoke(q.query))
+        lambda user_input: user_input.type == QueryType.BUDGET, RunnableLambda(lambda q : budget_chain.invoke({"query":q.query, "history":q.history}))
     ),
-    general_chain
+    RunnableLambda(lambda q : general_chain.invoke({"query":q.query, "history":q.history}))
 )
 
 
 
-chatbot = classifier_chain | conditional_chain
+chatbot = conditional_chain
 
-def ask_ai(query: str) -> str:
-    return chatbot.invoke({"query": query})
+def classify_query(query: str) -> Query:
+    return classifier_chain.invoke({"query": query})
+
+def ask_ai(query: str, history : list[AIMessage | HumanMessage]) -> str:
+    user_query = classifier_chain.invoke({"query": query})
+    user_input = UserInput(query=user_query.query, history=history, type=user_query.type)
+    return chatbot.invoke(user_input)
 
 if __name__ == "__main__":
-    result = chatbot.invoke({
-        "query": "I'm going to Cox's Bazar for 3 days. What should I do, eat, and how much will it cost?"
-    })
-
+    result = ask_ai("I'm going to Cox's Bazar for 3 days. What should I do, eat, and how much will it cost?", [])
     print(result)
